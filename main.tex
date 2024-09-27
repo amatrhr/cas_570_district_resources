@@ -5,6 +5,9 @@ backend=biber,
 style=alphabetic,
 sorting=ynt
 ]{biblatex}
+\usepackage[linesnumbered,lined,boxed,commentsnumbered]{algorithm2e} 
+\usepackage{hyperref}
+\usepackage{amsmath}
 
 \addbibresource{thebib.bib}
 \usepackage{graphicx} % Required for inserting images
@@ -22,48 +25,51 @@ Public school districts in the United States are obligated to provide equal educ
 
 This project asks how, when faced with uncertain enrollment trends and a need to maintain a proper assignment of resources to students, how might a school district make a stable, sustainable, and fair resource policy by maintaining a tolerable student-to-resource ratio, for example, maintaining a certain maximum student-to-teacher ratio or school size.
 
-I will address this question by using a two-agent simulation (it might also be fair to call this a dynamical system model) of school openings and closings in a single school district, played out over 50 school years. One agent represents the population of public school students, which undergoes random demographic variation across years. The other agent represents the policy-making body of the district, which attempts to maintain a tolerable student-to-school ratio in the face of these demographic changes by predicting the change in enrollment at the end of each school year and opening or closing schools in response.
+I will address this question by using a two-agent simulation (it might also be fair to call this a dynamical system model) of school openings and closings in a single school district, played out over 50 school years. One agent represents the population of public school students, which undergoes random demographic variation across years. The other agent represents the policy-making body of the district, which attempts to maintain a tolerable student-to-school ratio in the face of these demographic changes by using historical data to predict the change in enrollment at the end of each school year and opening or closing schools in response.
+See Algorithm~\ref{DR} for a summary of the simulation.
+\begin{algorithm}
+\SetAlgoLined
+\KwResult{One replicate of the policy simulation}
+\KwIn{desired student-to-school ratio $R$; tolerance interval $T_\text{min},\,T_\text{max}$; EWMA parameters $A$; parameter selection probabilities $\vec{p}$; enrollment growth patterns $G$; initial student population $N_0$}
+Set $\texttt{SchoolCount}_0  := RN_0$ \\
+\For{$t\; \text{in}\; 0,\dots,49$}{
+\If{t\in \left\{0,\,5,\,\dots,\,45,\,\right\}}{choose growth pattern from $G$ at random}
+calculate $\Delta N$ from growth pattern and current enrollment $N_t$\\
+select $\alpha_t$ from $A$ using multinomial draw from $\vec{p}$ \\
+predict $D_{t+1}:=$ EWMA of enrollment at $t+1$ from $\alpha_t$, $N_0$,\dots $N_t$\\
+compute $\hat{R}_{t+1}$ given $D_{t+1}$\\
+\If{$\hat{R}_{t+1} - R > T_\text{max}$ \text{or} $\hat{R}_{t+1} - R <T_\text{min}$ }{$\texttt{SchoolCount}_{t+1} := \mathrm{Round} \left(\texttt{SchoolCount}_t\times\left(1 +  \frac{\left(\hat{R}_{t+1} - R\right)}{R}\right)\right)$}
+$N_{t+1}:=N_t + \Delta N$\\
+$R_{t+1}:=\frac{N_{t+1}}{\texttt{SchoolCount}_{t+1}}$\\
+adjust $\vec{p}$ depending on $\hat{R}_{t+1}$ vs. $R_{t+1}$ \\
+}
+\caption{District replicate\label{DR}}
+\end{algorithm}
 
 \section*{Methods}
 \subsection*{Simplifying Assumptions}
 I make several simplifying assumptions to justify using the ratio between the number of students in a district and the number of schools as a meaningful representation of the distribution of resources.
-In the simulation, students are treated as indistinguishable in terms of need for resources and will not enter or leave school during the year; to minimize complexity, their decisions to enter or leave school between school years do not depend on the student-to-school ratio. School policy decisions are implemented instantaneously during the summer break between school years--a school can be built with no lead time. Every school is treated as having the same number of teachers.
+In the simulation, students are indistinguishable in terms of need for resources and will not enter or leave school during the year.
+School policy decisions are implemented instantaneously during the summer break between school years--a school can be built and staffed with no lead time. Every school in the district is indistinguishable. 
+
 \subsection*{Agent Behavior: District Population}
-I will simulate uncertain patterns of student demographic change within an individual school district; for each Convex Growth/Decline
-		
+I will simulate uncertain patterns of student demographic change within an individual school district; for each five-year period, the student population will (randomly) undergo either convex growth/decline, concave growth/decline, a one-time impulse of sudden inflow or outflow during the third year, or will remain flat (with uniform noise).
+
+\subsection*{Agent Behavior: District Administration}	
+During every simulated summer, the district administration predicts the change in number of students enrolled by using an exponentially weighted moving average (EWMA) of previous year-over-year changes, and uses the prediction as a basis for action. EWMA predicitons depend on a single smoothing parameter, $\alpha;\; 0<\alpha\leq1$ and larger $\alpha$ corresponds to emphasizing recent observations when predicting; see, e.g.  \cite{snyder1999understanding},p. 6. 
+
+The district will choose $\alpha$ randomly from the set $A = \left\{0.1,\,0.2,\,\dots,\,0.9, 1\right\}$, using on the 10-vector of selection probabilities $\vec{p}$. At first, each $\alpha$ in $A$ has the same probability of being selected; each element of $\vec{p}$ is 0.1.The district will learn from its policy choice and will increase those $p_i$ that have led to predictions that led to good decisions and decrease others, a process based on the adaptive agent-specific autoregressive predictions of \cite{fogel1999inductive}\footnote{my model is simpler; the reference is a multi-agent simulation in which agents compete for resources based on their predictions}.
+
+The district administration has a pre-set tolerance for violations of the student-to-school ratio; for example, if the tolerance is $T_\text{min}=-50\%$ to $T_\text{max}=25\%$ and the desired ratio is 200 students per school, a predicted enrollment change resulting in $<100$ or $>250$ students per school is out-of-tolerance.
 
 
-	
-	Concave Growth/Decline
-		
-		
+If the predicted number of students would lead to an out-of-tolerance student-to-school ratio, the number of schools will be adjusted up or down to be just within tolerance. 
 
-	Impulses 
-		
-
-	Flat with Noise
-
-		
-Set policy by learning EWMA parameters on first differences: Bayesian updating of an odd number (try n=5 or n=10) discrete ⍶ between 0 and 1–if the ratio is maintained, increase likelihood of choosing the ⍶ again–moving from a 20/100 chance of being chosen to a 24/100, while others now have a 19/100 chance.
-
-	Exponentially weighted moving average: x{n+1}=x{n}+(1-)x{n-1}+(1-)2x{n-2}+... 
-
-x{n+1}=x{n}+(1-)x{n-1}
-
-Tolerances  for being over/under the ratio: -50\% to +50\% in 10\% increments. Example–if the district must have no more than 200 students per school, with 10\% tolerance, then any enrollment increase to a district with 2199 students in 100 schools  must result in building a new school. If this district has a negative tolerance of 50\% and  ever falls below 1000 students, it must close a school.
+If this prediction has led to overadjustment (changing the number of schools unnecessarily) or under-adjustment (the change, or lack thereof did not produce a tolerable student-to-school ratio), 9\% of its $p_i$ will be transferred (uniformly) to the other 9 elements of $\vec{p}$; otherwise, the decision was a good one, and $p_i$ will be increased by drawing uniformly from the rest of $\vec{p}$
 
 
-\subsection*{Agent Behavior: District Administration}
-\cite{snyder1999understanding}
-\cite{fogel1999inductive}
 \subsection*{Independent Replicates}
-
-
-Metrics
-Mean Absolute % Error in student/resource ratio
-For normalized time series:
-MAD 	
-RMSE
+The process will be replicated for independent simulated districts with differing initial conditions, so that the sensitivity of the simulation to these conditions can be understood. Each replicate will be evaluated using the proportion of simulated years where the student-to-school ratio was within tolerance, as well as using standard measures of predictive accuracy for time series.
 
 \medskip
 
