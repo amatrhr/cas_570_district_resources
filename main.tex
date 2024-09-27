@@ -1,20 +1,42 @@
 \documentclass{article}
+
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+
+\addbibresource{thebib.bib}
 \usepackage{graphicx} % Required for inserting images
 
-\title{District Resources}
-\author{Charles Laurin}
+\title{District Resources Dynamic Model Simulation}
+\author{Charles Laurin \\CAS 570}
 \date{September 2024}
 
 \begin{document}
-
+\maketitle
 
 
 \section*{Introduction}
+Public school districts in the United States are obligated to provide equal educational opportunities to all students; their finances are generally also subject to local tax funding under the management of elected school boards. This means that they operate under a relatively narrow range of student-to-resource ratios, and declining student populations are important predictors of school closure, a drastic adjustment to these ratios \cite{harris2023extreme}. 
+
+This project asks how, when faced with uncertain enrollment trends and a need to maintain a proper assignment of resources to students, how might a school district make a stable, sustainable, and fair resource policy by maintaining a tolerable student-to-resource ratio, for example, maintaining a certain maximum student-to-teacher ratio or school size.
+
+I will address this question by using a two-agent simulation (it might also be fair to call this a dynamical system model) of school openings and closings in a single school district, played out over 50 school years. One agent represents the population of public school students, which undergoes random demographic variation across years. The other agent represents the policy-making body of the district, which attempts to maintain a tolerable student-to-school ratio in the face of these demographic changes by predicting the change in enrollment at the end of each school year and opening or closing schools in response.
 
 \section*{Methods}
+\subsection*{Simplifying Assumptions}
 \subsection*{Agent Behavior: District Population}
 \subsection*{Agent Behavior: District Administration}
+\cite{snyder1999understanding}
+\cite{fogel1999inductive}
+\subsection*{Independent Replicates}
 \section*{Evaluation}
 
+\subsection*{Comparison with Empirical Patterns}
+
 \section*{Contingencies}
+\medskip
+
+\printbibliography
 \end{document}
