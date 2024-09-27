@@ -38,7 +38,7 @@ calculate $\Delta N$ from growth pattern and current enrollment $N_t$\\
 select $\alpha_t$ from $A$ using multinomial draw from $\vec{p}$ \\
 predict $D_{t+1}:=$ EWMA of enrollment at $t+1$ from $\alpha_t$, $N_0$,\dots $N_t$\\
 compute $\hat{R}_{t+1}$ given $D_{t+1}$\\
-\If{$\hat{R}_{t+1} - R > T_\text{max}$ \text{or} $\hat{R}_{t+1} - R <T_\text{min}$ }{$\texttt{SchoolCount}_{t+1} := \mathrm{Round} \left(\texttt{SchoolCount}_t\times\left(1 +  \frac{\left(\hat{R}_{t+1} - R\right)}{R}\right)\right)$}
+\If{$ \frac{\left(\hat{R}_{t+1} - R\right)}{R} > T_\text{max}$ \text{or} $ \frac{\left(\hat{R}_{t+1} - R\right)}{R} <T_\text{min}$ }{$\texttt{SchoolCount}_{t+1} := \mathrm{Round} \left(\texttt{SchoolCount}_t\times\left(1 +  \frac{\left(\hat{R}_{t+1} - R\right)}{R}\right)\right)$}
 $N_{t+1}:=N_t + \Delta N$\\
 $R_{t+1}:=\frac{N_{t+1}}{\texttt{SchoolCount}_{t+1}}$\\
 adjust $\vec{p}$ depending on $\hat{R}_{t+1}$ vs. $R_{t+1}$ \\
@@ -47,25 +47,22 @@ adjust $\vec{p}$ depending on $\hat{R}_{t+1}$ vs. $R_{t+1}$ \\
 \end{algorithm}
 
 \section*{Methods}
-\subsection*{Simplifying Assumptions}
-I make several simplifying assumptions to justify using the ratio between the number of students in a district and the number of schools as a meaningful representation of the distribution of resources.
-In the simulation, students are indistinguishable in terms of need for resources and will not enter or leave school during the year.
-School policy decisions are implemented instantaneously during the summer break between school years--a school can be built and staffed with no lead time. Every school in the district is indistinguishable. 
+
 
 \subsection*{Agent Behavior: District Population}
-I will simulate uncertain patterns of student demographic change within an individual school district; for each five-year period, the student population will (randomly) undergo either convex growth/decline, concave growth/decline, a one-time impulse of sudden inflow or outflow during the third year, or will remain flat (with uniform noise).
+I will simulate uncertain patterns of student demographic change within an individual school district; for each five-year period, the student population will (randomly) undergo either convex growth/decline, concave growth/decline, a one-time impulse of sudden inflow or outflow during the third year, or will remain flat (with uniform noise). These growth patterns will be indexed in the collection $G$.
 
 \subsection*{Agent Behavior: District Administration}	
-During every simulated summer, the district administration predicts the change in number of students enrolled by using an exponentially weighted moving average (EWMA) of previous year-over-year changes, and uses the prediction as a basis for action. EWMA predicitons depend on a single smoothing parameter, $\alpha;\; 0<\alpha\leq1$ and larger $\alpha$ corresponds to emphasizing recent observations when predicting; see, e.g.  \cite{snyder1999understanding},p. 6. 
+During every simulated summer, the district administration will predict the change in number of students enrolled by using an exponentially weighted moving average (EWMA) of previous year-over-year changes, then will use the prediction as a basis for action. EWMA predictions depend on a single smoothing parameter, $\alpha;\; 0<\alpha\leq1$ and larger $\alpha$ corresponds to emphasizing recent observations when predicting; see, e.g.  \cite{snyder1999understanding},p. 6. 
 
-The district will choose $\alpha$ randomly from the set $A = \left\{0.1,\,0.2,\,\dots,\,0.9, 1\right\}$, using on the 10-vector of selection probabilities $\vec{p}$. At first, each $\alpha$ in $A$ has the same probability of being selected; each element of $\vec{p}$ is 0.1.The district will learn from its policy choice and will increase those $p_i$ that have led to predictions that led to good decisions and decrease others, a process based on the adaptive agent-specific autoregressive predictions of \cite{fogel1999inductive}\footnote{my model is simpler; the reference is a multi-agent simulation in which agents compete for resources based on their predictions}.
+The district will choose $\alpha$ randomly from the set $A = \left\{0.1,\,0.2,\,\dots,\,0.9, 1\right\}$, using the 10-vector of selection probabilities $\vec{p}$. At first, each $\alpha$ in $A$ has the same probability of being selected; each element of $\vec{p}$ is 0.1. The district will learn from its policy choice and will increase those $p_i$ that have led to predictions that led to good decisions and decrease others, a process based on the adaptive agent-specific autoregressive predictions of \cite{fogel1999inductive}\footnote{my model is simpler; the reference is a multi-agent simulation in which agents compete for resources based on their predictions}.
 
-The district administration has a pre-set tolerance for violations of the student-to-school ratio; for example, if the tolerance is $T_\text{min}=-50\%$ to $T_\text{max}=25\%$ and the desired ratio is 200 students per school, a predicted enrollment change resulting in $<100$ or $>250$ students per school is out-of-tolerance.
+The district administration has a pre-set tolerance for violations of the student-to-school ratio; for example, if the tolerance is $T_\text{min}=-50\%$ to $T_\text{max}=25\%$ and the desired ratio, $R$, is 200 students per school, a predicted enrollment change resulting in $R<100$ or $R>250$ students per school is out-of-tolerance.
 
 
 If the predicted number of students would lead to an out-of-tolerance student-to-school ratio, the number of schools will be adjusted up or down to be just within tolerance. 
 
-If this prediction has led to overadjustment (changing the number of schools unnecessarily) or under-adjustment (the change, or lack thereof did not produce a tolerable student-to-school ratio), 9\% of its $p_i$ will be transferred (uniformly) to the other 9 elements of $\vec{p}$; otherwise, the decision was a good one, and $p_i$ will be increased by drawing uniformly from the rest of $\vec{p}$
+If this prediction has led to overadjustment (changing the number of schools unnecessarily) or under-adjustment (the change, or lack thereof, did not produce a tolerable student-to-school ratio), 9\% of its $p_i$ will be transferred (uniformly) to the other 9 elements of $\vec{p}$; otherwise, the decision was a good one, and $p_i$ will be increased by drawing uniformly from the rest of $\vec{p}$
 
 
 \subsection*{Independent Replicates}
@@ -74,4 +71,9 @@ The process will be replicated for independent simulated districts with differin
 \medskip
 
 \printbibliography
+
+\section*{Appendix: Simplifying Assumptions}
+I make several simplifying assumptions to justify using the ratio between the number of students in a district and the number of schools as a meaningful representation of the distribution of resources.
+In the simulation, students are indistinguishable in terms of need for resources and will not enter or leave school during the year.
+School policy decisions are implemented instantaneously during the summer break between school years--a school can be built and staffed with no lead time. Every school in the district is indistinguishable. 
 \end{document}
