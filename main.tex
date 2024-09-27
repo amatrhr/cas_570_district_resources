@@ -26,16 +26,45 @@ I will address this question by using a two-agent simulation (it might also be f
 
 \section*{Methods}
 \subsection*{Simplifying Assumptions}
+I make several simplifying assumptions to justify using the ratio between the number of students in a district and the number of schools as a meaningful representation of the distribution of resources.
+In the simulation, students are treated as indistinguishable in terms of need for resources and will not enter or leave school during the year; to minimize complexity, their decisions to enter or leave school between school years do not depend on the student-to-school ratio. School policy decisions are implemented instantaneously during the summer break between school years--a school can be built with no lead time. Every school is treated as having the same number of teachers.
 \subsection*{Agent Behavior: District Population}
+I will simulate uncertain patterns of student demographic change within an individual school district; for each Convex Growth/Decline
+		
+
+
+	
+	Concave Growth/Decline
+		
+		
+
+	Impulses 
+		
+
+	Flat with Noise
+
+		
+Set policy by learning EWMA parameters on first differences: Bayesian updating of an odd number (try n=5 or n=10) discrete ⍶ between 0 and 1–if the ratio is maintained, increase likelihood of choosing the ⍶ again–moving from a 20/100 chance of being chosen to a 24/100, while others now have a 19/100 chance.
+
+	Exponentially weighted moving average: x{n+1}=x{n}+(1-)x{n-1}+(1-)2x{n-2}+... 
+
+x{n+1}=x{n}+(1-)x{n-1}
+
+Tolerances  for being over/under the ratio: -50\% to +50\% in 10\% increments. Example–if the district must have no more than 200 students per school, with 10\% tolerance, then any enrollment increase to a district with 2199 students in 100 schools  must result in building a new school. If this district has a negative tolerance of 50\% and  ever falls below 1000 students, it must close a school.
+
+
 \subsection*{Agent Behavior: District Administration}
 \cite{snyder1999understanding}
 \cite{fogel1999inductive}
 \subsection*{Independent Replicates}
-\section*{Evaluation}
 
-\subsection*{Comparison with Empirical Patterns}
 
-\section*{Contingencies}
+Metrics
+Mean Absolute % Error in student/resource ratio
+For normalized time series:
+MAD 	
+RMSE
+
 \medskip
 
 \printbibliography
